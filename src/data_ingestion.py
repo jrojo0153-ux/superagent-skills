@@ -8,8 +8,6 @@ class DataIngestor:
         self.host = config.BET365_HOST
         self.headers = config.get_bet365_headers()
         
-        # Guardamos la llave de API-FOOTBALL en los atributos de la clase 
-        # por si se requiere para expansiones de estadísticas o fixtures secundarios
         self.football_key = config.API_FOOTBALL_KEY
         self.football_headers = {
             'x-apisports-key': self.football_key
@@ -17,7 +15,7 @@ class DataIngestor:
 
     def get_tournament_data(self, tournament_ids: str = "17,31") -> pd.DataFrame:
         """
-        Extrae partidos y cuotas unificados de Bet365 mapeando el JSON nativo.
+        Extrae partidos y cuotas unificados de Bet365 procesando la lista nativa de eventos.
         """
         conn = http.client.HTTPSConnection(self.host)
         path = f"/odds-by-tournaments?tournamentIds={tournament_ids.replace(',', '%2C')}&verbosity=3"
@@ -29,10 +27,16 @@ class DataIngestor:
             data = json.loads(raw_data)
             
             events_list = []
-            # Estructura nativa de Bet365 API
-            results = data.get('results', data.get('data', []))
+            
+            # CORRECCIÓN: Si 'data' es directamente una lista, la usamos. 
+            # Si es un diccionario por algún cambio de última hora, busca las llaves.
+            results = data if isinstance(data, list) else data.get('results', data.get('data', []))
             
             for event in results:
+                # Validar que el evento sea un diccionario válido antes de extraer
+                if not isinstance(event, dict): 
+                    continue
+                    
                 home_team = event.get('home_team', event.get('home', {}).get('name', 'Desconocido'))
                 away_team = event.get('away_team', event.get('away', {}).get('name', 'Desconocido'))
                 
@@ -62,4 +66,4 @@ class DataIngestor:
         return df_fixtures
 
 if __name__ == "__main__":
-    print("Módulo de Ingesta Bet365 e Inicialización de API-Football completado.")
+    print("Módulo de Ingesta Bet365 corregido con tipado dinámico.")
