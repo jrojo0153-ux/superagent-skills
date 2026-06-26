@@ -2,30 +2,33 @@ import os
 import sys
 
 # Cargar variables de entorno inyectadas por GitHub Secrets
-API_FOOTBALL_KEY = os.getenv("API_FOOTBALL_KEY")
-ODDS_API_KEY = os.getenv("ODDS_API_KEY")
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
+API_FOOTBALL_KEY = os.getenv("API_FOOTBALL_KEY")  # Añadida correctamente
 
-# Configuraciones Base de las APIs
-RAPIDAPI_HOST = "open-ai21.p.rapidapi.com"
-API_FOOTBALL_BASE_URL = "https://v3.football.api-sports.io"
-ODDS_API_BASE_URL = "https://api.the-odds-api.com/v4/sports"
+# Hosts de RapidAPI de destino
+LLM_HOST = "open-ai21.p.rapidapi.com"
+BET365_HOST = "bet36528.p.rapidapi.com"
 
 def validate_environment():
-    """Valida que todas las claves maestras estén presentes en el entorno antes de la ejecución."""
-    missing_keys = []
-    if not API_FOOTBALL_KEY: missing_keys.append("API_FOOTBALL_KEY")
-    if not ODDS_API_KEY: missing_keys.append("ODDS_API_KEY")
-    if not RAPIDAPI_KEY: missing_keys.append("RAPIDAPI_KEY")
-    
-    if missing_keys:
-        print(f"CRITICAL ERROR: Faltan las siguientes GitHub Secrets: {', '.join(missing_keys)}")
+    """Valida que las claves maestras estén presentes en el entorno antes de correr."""
+    if not RAPIDAPI_KEY:
+        print("CRITICAL ERROR: Falta la GitHub Secret: RAPIDAPI_KEY")
         sys.exit(1)
+    if not API_FOOTBALL_KEY:
+        print("WARNING: Falta la GitHub Secret: API_FOOTBALL_KEY. Algunas funciones secundarias podrían fallar.")
 
-def get_rapidapi_headers():
-    """Genera las cabeceras estándar para la conexión con el motor lógico en RapidAPI."""
+def get_llm_headers():
+    """Cabeceras para el modelo Llama."""
     return {
         'x-rapidapi-key': RAPIDAPI_KEY,
-        'x-rapidapi-host': RAPIDAPI_HOST,
+        'x-rapidapi-host': LLM_HOST,
+        'Content-Type': "application/json"
+    }
+
+def get_bet365_headers():
+    """Cabeceras para el endpoint de Bet365."""
+    return {
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': BET365_HOST,
         'Content-Type': "application/json"
     }
