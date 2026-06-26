@@ -2,7 +2,9 @@ name: Quant Sports Trading Engine
 
 on:
   schedule:
-    - cron: '0 9 * * *'
+    # Ejecuta el motor al inicio de cada hora (minuto 0)
+    - cron: '0 * * * *'
+  # Permite ejecución manual desde la interfaz de GitHub Actions
   workflow_dispatch:
 
 jobs:
@@ -11,10 +13,10 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # Actualizado a v4
+        uses: actions/checkout@v4
 
       - name: Set up Python 3.10
-        uses: actions/setup-python@v5 # Actualizado a v5 para evitar futuras advertencias
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           cache: 'pip'
@@ -26,15 +28,16 @@ jobs:
 
       - name: Run Quant Engine
         env:
-          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
-          ODDS_API_KEY: ${{ secrets.ODDS_API_KEY }}
+          # Inyección de secretos configurados en tu repositorio
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
         run: |
           python src/main.py
 
       - name: Upload Trading Report Artifact
-        uses: actions/upload-artifact@v4 # ¡Corregido a v4 aquí!
+        uses: actions/upload-artifact@v4
         with:
           name: reporte_trading_diario
           path: reporte_trading.md
+          # El artefacto se retiene por 5 días antes de ser purgado automáticamente
           retention-days: 5
